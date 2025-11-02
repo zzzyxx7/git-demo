@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>zkj的温馨提醒</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .control-panel {
+            margin: 25px 0;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            width: 100%;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .stop-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+
+        .counter {
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .settings {
+            margin-top: 25px;
+            padding: 18px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            text-align: left;
+        }
+
+        .settings h3 {
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .setting-item {
+            margin: 12px 0;
+        }
+
+        .setting-item label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .setting-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .speed-control input {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .speed-control input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6a11cb;
+            cursor: pointer;
+        }
+
+        .speed-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .tip-window {
+            position: fixed;
+            width: 200px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            font-size: 15px;
+            color: #333;
+            cursor: move;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            user-select: none;
+            animation: fadeIn 0.5s ease;
+            padding: 5px 10px;
+            text-align: center;
+            word-break: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .tip-window:hover {
+            transform: scale(1.05);
+        }
+
+        .tip-window.fade-out {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .share-hint {
+            margin-top: 20px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💝 zkj的温馨提醒</h1>
+        
+        <div class="description">
+            点击运行按钮，屏幕上会随机出现温馨的提醒话语，给你带来小小的惊喜和温暖~
+        </div>
+
+        <div class="control-panel">
+            <button id="runBtn" class="btn">✨ 开始运行</button>
+            <button id="stopBtn" class="btn stop-btn" disabled>
+                ⏹️ 停止运行
+            </button>
+            <div class="counter">
+                已创建: <span id="counter">0</span> / <span id="totalCounter">300</span> 个提醒
+            </div>
+        </div>
+
+        <div class="settings">
+            <h3>⚙️ 设置</h3>
+            
+            <div class="setting-item">
+                <label>
+                    <input type="checkbox" id="autoClose" checked>
+                    自动关闭提醒（8秒后）
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    <input type="checkbox" id="soundEffect">
+                    启用音效 (微信中可能受限)
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    提醒数量: 
+                    <input type="number" id="tipCount" value="300" min="1" max="500" style="width: 70px; margin-left: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <label for="speedControl">生成速度:</label>
+                <div class="speed-control">
+                    <input type="range" id="speedControl" min="50" max="1000" value="200" step="50">
+                    <span class="speed-value" id="speedValue">200ms</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="share-hint">
+        分享给朋友，让TA也收到你的温馨提醒~
+    </div>
+
+    <div class="footer">
+        Designed for WeChat Mobile | zkj
+    </div>
+
+    <!-- 音效 - 使用base64编码的简单音效，避免外部资源 -->
+    <audio id="tipSound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAABAAACcQCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8AAABQTEFNRTMuMTAwBKkAAAAAAAAAADUgJAOIIQAAgAAAgHDYKNIEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//sQZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // 温馨提醒数据
+        const TIPS = [
+           "zkj大帅哥~", "xrz大sb", "xzh大sb", "czm大sb",
+        "sj大sb", "czf大sb", "lcy大sb", "zyc大sb",
+        "wq大sb", "qsl大sb", "yzh大sb", "cwb大sb",
+        "yzh大sb", "yhr大sb", "smk大sb", "zkj大帅哥"
+        ];
+
+        const BG_COLORS = [
+            "#FFB6C1", "#87CEEB", "#90EE90", "#E6E6FA",
+            "#FFFFE0", "#DDA0DD", "#FF7F50", "#FFE4C4",
+            "#7FFFD4", "#FFE4E1", "#F0FFF0", "#FFF0F5",
+            "#E0FFFF", "#F5F5DC", "#FFDAB9", "#F0E68C"
+        ];
+
+        class WarmTipApp {
+            constructor() {
+                this.isRunning = false;
+                this.createdCount = 0;
+                this.tipWindows = new Set();
+                this.intervalId = null;
+                
+                // 获取DOM元素
+                this.runBtn = document.getElementById('runBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.counterDisplay = document.getElementById('counter');
+                this.totalCounterDisplay = document.getElementById('totalCounter');
+                this.autoCloseCheckbox = document.getElementById('autoClose');
+                this.soundEffectCheckbox = document.getElementById('soundEffect');
+                this.tipCountInput = document.getElementById('tipCount');
+                this.speedControl = document.getElementById('speedControl');
+                this.speedValue = document.getElementById('speedValue');
+                this.tipSound = document.getElementById('tipSound');
+                
+                this.bindEvents();
+                this.init();
+            }
+
+            init() {
+                // 初始化显示
+                this.totalCounterDisplay.textContent = this.tipCountInput.value;
+                
+                // 微信环境检测
+                this.isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+                if (this.isWeChat) {
+                    console.log("微信环境检测");
+                }
+            }
+
+            bindEvents() {
+                this.runBtn.addEventListener('click', () => this.start());
+                this.stopBtn.addEventListener('click', () => this.stop());
+                
+                // 速度控制
+                this.speedControl.addEventListener('input', () => {
+                    const speed = this.speedControl.value;
+                    this.speedValue.textContent = `${speed}ms`;
+                });
+                
+                // 总数量变化时更新显示
+                this.tipCountInput.addEventListener('input', () => {
+                    this.totalCounterDisplay.textContent = this.tipCountInput.value;
+                });
+                
+                // 触摸事件支持
+                this.runBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.runBtn.style.transform = 'translateY(-1px)';
+                });
+                
+                this.runBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.runBtn.style.transform = '';
+                    this.start();
+                });
+                
+                this.stopBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.stopBtn.style.transform = 'translateY(-1px)';
+                });
+                
+                this.stopBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.stopBtn.style.transform = '';
+                    this.stop();
+                });
+            }
+
+            start() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.createdCount = 0;
+                this.runBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.updateCounter();
+                
+                const totalTips = parseInt(this.tipCountInput.value) || 300;
+                const speed = parseInt(this.speedControl.value) || 200;
+                
+                this.intervalId = setInterval(() => {
+                    if (this.createdCount >= totalTips) {
+                        this.stop();
+                        return;
+                    }
+                    
+                    this.createTipWindow();
+                    this.createdCount++;
+                    this.updateCounter();
+                    
+                }, speed);
+            }
+
+            stop() {
+                this.isRunning = false;
+                clearInterval(this.intervalId);
+                this.runBtn.disabled = false;
+                this.stopBtn.disabled = true;
+            }
+
+            createTipWindow() {
+                const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
+                const bgColor = BG_COLORS[Math.floor(Math.random() * BG_COLORS.length)];
+                
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                const windowWidth = 200;
+                const windowHeight = 50;
+                
+                const x = Math.floor(Math.random() * (screenWidth - windowWidth));
+                const y = Math.floor(Math.random() * (screenHeight - windowHeight));
+                
+                const tipWindow = document.createElement('div');
+                tipWindow.className = 'tip-window';
+                tipWindow.textContent = tip;
+                tipWindow.style.backgroundColor = bgColor;
+                tipWindow.style.left = x + 'px';
+                tipWindow.style.top = y + 'px';
+                
+                // 添加触摸拖动功能
+                this.makeDraggable(tipWindow);
+                
+                document.body.appendChild(tipWindow);
+                this.tipWindows.add(tipWindow);
+                
+                // 播放音效
+                if (this.soundEffectCheckbox.checked) {
+                    this.playTipSound();
+                }
+                
+                // 自动关闭
+                if (this.autoCloseCheckbox.checked) {
+                    setTimeout(() => {
+                        this.closeTipWindow(tipWindow);
+                    }, 8000); // 8秒后自动关闭
+                }
+                
+                // 点击关闭
+                tipWindow.addEventListener('click', () => {
+                    this.closeTipWindow(tipWindow);
+                });
+                
+                // 触摸关闭
+                tipWindow.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.closeTipWindow(tipWindow);
+                });
+            }
+
+            makeDraggable(element) {
+                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                let isDragging = false;
+                
+                element.addEventListener('touchstart', dragStart, { passive: false });
+                element.addEventListener('mousedown', dragStart);
+                
+                function dragStart(e) {
+                    e.preventDefault();
+                    isDragging = true;
+                    
+                    if (e.type === 'touchstart') {
+                        pos3 = e.touches[0].clientX;
+                        pos4 = e.touches[0].clientY;
+                    } else {
+                        pos3 = e.clientX;
+                        pos4 = e.clientY;
+                    }
+                    
+                    document.addEventListener('touchmove', elementDrag, { passive: false });
+                    document.addEventListener('touchend', closeDragElement);
+                    document.addEventListener('mousemove', elementDrag);
+                    document.addEventListener('mouseup', closeDragElement);
+                }
+                
+                function elementDrag(e) {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    
+                    if (e.type === 'touchmove') {
+                        pos1 = pos3 - e.touches[0].clientX;
+                        pos2 = pos4 - e.touches[0].clientY;
+                        pos3 = e.touches[0].clientX;
+                        pos4 = e.touches[0].clientY;
+                    } else {
+                        pos1 = pos3 - e.clientX;
+                        pos2 = pos4 - e.clientY;
+                        pos3 = e.clientX;
+                        pos4 = e.clientY;
+                    }
+                    
+                    element.style.top = (element.offsetTop - pos2) + "px";
+                    element.style.left = (element.offsetLeft - pos1) + "px";
+                }
+                
+                function closeDragElement() {
+                    isDragging = false;
+                    document.removeEventListener('touchmove', elementDrag);
+                    document.removeEventListener('touchend', closeDragElement);
+                    document.removeEventListener('mousemove', elementDrag);
+                    document.removeEventListener('mouseup', closeDragElement);
+                }
+            }
+
+            closeTipWindow(tipWindow) {
+                if (!tipWindow.parentNode) return;
+                
+                tipWindow.classList.add('fade-out');
+                setTimeout(() => {
+                    if (tipWindow.parentNode) {
+                        tipWindow.parentNode.removeChild(tipWindow);
+                    }
+                    this.tipWindows.delete(tipWindow);
+                }, 300);
+            }
+
+            playTipSound() {
+                // 简单的提示音
+                try {
+                    this.tipSound.currentTime = 0;
+                    const playPromise = this.tipSound.play();
+                    
+                    if (playPromise !== undefined) {
+                        playPromise.catch(() => {
+                            // 微信浏览器可能阻止自动播放
+                            console.log("音效播放被阻止");
+                        });
+                    }
+                } catch (e) {
+                    // 忽略音效错误
+                    console.log("音效播放错误:", e);
+                }
+            }
+
+            updateCounter() {
+                this.counterDisplay.textContent = this.createdCount;
+            }
+        }
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            new WarmTipApp();
+        });
+
+        // 防止拖拽时选择文本
+        document.addEventListener('dragstart', (e) => {
+            e.preventDefault();
+        });
+        
+        // 防止手机浏览器下拉刷新
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>
